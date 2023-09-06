@@ -18,6 +18,9 @@ app.listen(8080, function () {
 
 app.use(express.urlencoded({ extended: true })) //post로 요청한 값 url 인코딩으로 알아서 해석해서 가져오기
 
+app.set('view engine', 'ejs');
+
+
 app.get('/', function (요청, 응답) {
   응답.sendFile(__dirname + '/index.html')
 });
@@ -26,23 +29,67 @@ app.get('/write', function (요청, 응답) {
   응답.sendFile(__dirname + '/write.html')
 });
 
-app.post('/add', (요청, 응답) => {
-  
-  async function run() {
-    try {
+app.get('/list', async function (요청, 응답) {
+  try {
+    // MongoDB 클라이언트 연결
+    await client.connect();
 
-      await client.db("todoapp").command({ ping: 1 });
+    // find 메서드를 사용하여 모든 문서 가져오기
+    const cursor = client.db('todoapp').collection('post').find();
 
-      await client.db('todoapp').collection('post').insertOne({
-        title: 요청.body.title, //html에서 받아온 name=title
-        date: 요청.body.date, //html에서 받아온 name=date
-        // _id : 요청.body.index //MongoDB에서 부여한 기본 유니크key 부여 안하면 알아서 이상한코드 부여함
-      })
+    // 커서에서 문서를 배열로 변환
+    const documents = await cursor.toArray();
 
-    } finally {
-      await client.close();
-    }
+    // 결과를 콘솔에 출력
+    console.log(documents);
+
+    응답.render('list.ejs', {
+      posts: documents
+    });
+
+  } catch (에러) {
+    console.error(에러);
+  } finally {
+    // 클라이언트 연결 닫기
+    await client.close();
   }
-  run().catch(console.dir);
-}
-);
+});
+
+app.post('/add', async (요청, 응답) => {
+  try {
+    // MongoDB 클라이언트 연결
+    await client.connect();
+
+    await client.db("todoapp").command({ ping: 1 });
+
+    // counter 게시물 갯수
+    const counterQuery = await client.db('todoapp').collection('counter').findOne({ name: '게시물갯수' });
+    const totalPost = counterQuery ? counterQuery.totalPost : 0;
+
+    // post에 게시물 추가
+    const result = await client.db('todoapp').collection('post').insertOne({
+      _id: totalPost + 1,
+      title: 요청.body.title,
+      date: 요청.body.date
+    });
+
+    console.log('저장완료');
+    console.log(result);
+
+    // 게시물 갯수 업데이트
+    await client.db('todoapp').collection('counter').updateOne(
+      { name: '게시물갯수' },
+      { $set: { totalPost: totalPost + 1 } }
+      //$set : {key:바꿀값}
+      //$inc : {key:증가할값}
+    );
+
+    응답.redirect('/list'); // 게시물 추가 후 목록 페이지로 리다이렉트
+
+  } catch (에러) {
+    console.error(에러);
+  } finally {
+    // 클라이언트 연결 닫기
+    await client.close();
+  }
+});
