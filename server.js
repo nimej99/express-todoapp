@@ -17,9 +17,9 @@ app.listen(8080, function () {
 });
 
 app.use(express.urlencoded({ extended: true })) //post로 요청한 값 url 인코딩으로 알아서 해석해서 가져오기
+app.use('/public', express.static('public')) //public 폴더 사용하겠다 선언
 
 app.set('view engine', 'ejs');
-
 
 app.get('/', function (요청, 응답) {
   응답.sendFile(__dirname + '/index.html')
@@ -44,6 +44,29 @@ app.get('/list', async function (요청, 응답) {
     console.log(documents);
 
     응답.render('list.ejs', {
+      posts: documents
+    });
+
+  } catch (에러) {
+    console.error(에러);
+  } finally {
+    // 클라이언트 연결 닫기
+    await client.close();
+  }
+});
+
+app.get('/detail/:id', async function (요청, 응답) {
+  try {
+    // MongoDB 클라이언트 연결
+    await client.connect();
+
+    // find 메서드를 사용하여 모든 문서 가져오기
+    const documents = await client.db('todoapp').collection('post').findOne({ _id: parseInt(요청.params.id) });
+
+    // 결과를 콘솔에 출력
+    console.log(documents);
+
+    응답.render('detail.ejs', {
       posts: documents
     });
 
