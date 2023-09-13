@@ -2,10 +2,12 @@ const express = require('express');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
+require('dotenv').config();
+
 const app = express();
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://jamm:jamjam1!@nimej99.zjvkpmi.mongodb.net/?retryWrites=true&w=majority";
+const uri = process.env.DB_URL;
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -15,7 +17,7 @@ const client = new MongoClient(uri, {
 });
 
 
-app.listen(8080, function () {
+app.listen(process.env.PORT, function () {
   console.log('litening on 8080')
 });
 
