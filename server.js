@@ -265,6 +265,40 @@ app.put('/edit', async (요청, 응답) => {
   }
 });
 
+app.get('/search', async function (요청, 응답) {
+  try {
+    // MongoDB 클라이언트 연결
+    await client.connect();
+
+    const searchValue = 요청.query.value; // 검색어
+
+    // find 메서드를 사용하여 title 필드에 검색어가 포함된 문서 가져오기
+    const cursor = client.db('todoapp').collection('post').find({
+      title: {
+        $regex: `.*${searchValue}.*`, // 검색어를 포함하는 정규 표현식
+        $options: 'i' // 대소문자 구분 없이 검색
+      }
+    });
+
+    // 커서에서 문서를 배열로 변환
+    const documents = await cursor.toArray();
+
+    // 결과를 콘솔에 출력
+    console.log(documents);
+
+    응답.render('search.ejs', {
+      posts: documents
+    });
+
+  } catch (에러) {
+    console.error(에러);
+  } finally {
+    // 클라이언트 연결 닫기
+    await client.close();
+  }
+});
+
+
 app.post('/add', async (요청, 응답) => {
   try {
     // MongoDB 클라이언트 연결
