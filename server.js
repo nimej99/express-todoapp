@@ -11,7 +11,7 @@ const uri = process.env.DB_URL;
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: true,
+    strict: false,
     deprecationErrors: true,
   }
 });
@@ -265,20 +265,37 @@ app.put('/edit', async (요청, 응답) => {
   }
 });
 
+//binary search을 위한 indexing
 app.get('/search', async function (요청, 응답) {
   try {
     // MongoDB 클라이언트 연결
     await client.connect();
 
-    const searchValue = 요청.query.value; // 검색어
+    // 요청 쿼리 파라미터에서 검색어를 가져옵니다.
+    const 검색어 = 요청.query.value;
 
-    // find 메서드를 사용하여 title 필드에 검색어가 포함된 문서 가져오기
-    const cursor = client.db('todoapp').collection('post').find({
-      title: {
-        $regex: `.*${searchValue}.*`, // 검색어를 포함하는 정규 표현식
-        $options: 'i' // 대소문자 구분 없이 검색
+    if (!검색어) {
+      // 검색어가 없으면 렌더링만 하고 함수 종료
+      응답.render('search.ejs', {
+        posts: []
+      });
+      return;
+    }
+
+    let 조건 = [
+      {
+        $search: {
+          index: "titleSearch",
+          text: {
+            query: 검색어,
+            path: ['title', 'date']
+          }
+        }
       }
-    });
+    ]
+
+    // aggregate는 검색조건을 넣어줄 수 있다 데이터 파이프라이닝
+    const cursor = client.db('todoapp').collection('post').aggregate(조건);
 
     // 커서에서 문서를 배열로 변환
     const documents = await cursor.toArray();
