@@ -10,7 +10,6 @@
 </head>
 
 <body>
-
   <%- include('nav.html') %>
 
     <h4 class="ml-2 my-3"><strong>할일 리스트</strong></h4>
@@ -23,16 +22,24 @@
           </a>
           <p> 할일 마감날짜 : <%= posts[i].date %>
           </p>
-          <button class="delete btn btn-outline-secondary" data-id="<%= posts[i]._id %>">삭제</button>
+          <p> 작성자 : <%= posts[i].user %>
+          </p>
+          <button class="delete btn btn-outline-secondary" data-id="<%= posts[i]._id %>"
+            data-user="<%= posts[i].user %>">삭제</button>
         </li>
         <% } %>
     </ul>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"></script>
 
     <script>
-
-      //삭제도 /: 파라미터 사용가능
+      // 삭제도 /: 파라미터 사용 가능
       $('.delete').click(function (e) {
         const postId = e.target.dataset.id;
         var 지금누른거 = $(this);
@@ -48,17 +55,40 @@
         });
       });
 
+      // 클라이언트에서 현재 사용자 정보 가져오기
+      function getCurrentUser() {
+        $.get('/getuser', (data) => {
+          const currentUser = data.user;
+          console.log(currentUser)
+          // 현재 사용자 정보를 기반으로 UI 업데이트
+          updateUI(currentUser);
+        });
+      }
+
+      // UI 업데이트 함수
+      function updateUI(currentUser) {
+        // 사용자가 로그인한 경우에만 삭제 버튼을 보이게 하거나 숨깁니다.
+        if (currentUser) {
+          $('.delete').each(function () {
+            const user_id = currentUser; // 현재 사용자의 아이디
+            const post_user_id = $(this).data('user'); // 삭제 버튼에 저장된 게시물 작성자의 아이디
+            console.log(post_user_id)
+            if (user_id == post_user_id) {
+              $(this).show(); // 현재 사용자와 게시물 작성자 아이디가 일치하는 경우에만 보이도록 설정
+            } else {
+              $(this).hide(); // 그 외의 경우에는 숨깁니다.
+            }
+          });
+        } else {
+          $('.delete').hide();
+        }
+      }
+
+      // 페이지 로드 시 현재 사용자 정보 가져오고 UI 업데이트
+      $(document).ready(() => {
+        getCurrentUser();
+      });
     </script>
-
-
-
-
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-      crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-      crossorigin="anonymous"></script>
 </body>
 
 </html>

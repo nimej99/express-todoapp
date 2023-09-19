@@ -382,7 +382,7 @@ app.post('/add', isLogin, async (요청, 응답) => {
   }
 });
 
-app.delete('/delete', async (요청, 응답) => {
+app.delete('/delete', isLogin, async (요청, 응답) => {
   try {
 
     // MongoDB 클라이언트 연결
@@ -407,14 +407,21 @@ app.delete('/delete', async (요청, 응답) => {
       응답.status(400).send({ message: '삭제 실패' });
     }
 
-
-
-
   } catch (에러) {
     console.error(에러);
     응답.status(500).send({ message: '서버 오류' });
   } finally {
     // 클라이언트 연결 닫기
     await client.close();
+  }
+});
+
+app.get('/getuser', (요청, 응답) => {
+  if (요청.isAuthenticated()) {
+    // 사용자가 로그인한 경우 사용자 정보 전송
+    응답.json({ user: 요청.user.id });
+  } else {
+    // 사용자가 로그인하지 않은 경우 빈 객체 전송 또는 다른 처리
+    응답.json({ user: null });
   }
 });
