@@ -18,7 +18,10 @@
     <div class="container mt-3">
       <form action="/edit?_method=PUT" method="POST">
         <div class="form-group">
+          <p>작성자 : <%= posts.user %>
+          </p>
           <input type="hidden" name="_id" value="<%= posts._id%>">
+          <input type="hidden" name="user" value="<%= posts.user %>">
           <label>제목</label>
           <input type="text" class="form-control" name="title" value="<%= posts.title %>">
         </div>
@@ -26,8 +29,9 @@
           <label>날짜</label>
           <input type="text" class="form-control" name="date" value="<%= posts.date %>">
         </div>
-        <button class="delete btn btn-outline-secondary" data-id="<%= posts._id %>">삭제</button>
-        <button type="submit" class="btn btn-outline-secondary">수정하기</button>
+        <button type="submit" class="btn btn-outline-secondary" data-user="<%= posts.user %>" id="edit">수정하기</button>
+        <button class="delete btn btn-outline-secondary" data-id="<%= posts._id %>"
+          data-user="<%= posts.user %>">삭제</button>
       </form>
     </div>
 
@@ -44,11 +48,46 @@
           url: '/delete',
           data: { _id: postId },
         }).done((결과) => {
-          지금누른거.parent('li').hide();
+          지금누른거.parent('div').hide();
           console.log('성공');
         }).fail((xhr, textStatus, errorThrown) => {
           console.log(xhr, textStatus, errorThrown);
         });
+      });
+
+      // 클라이언트에서 현재 사용자 정보 가져오기
+      function getCurrentUser() {
+        $.get('/user', (data) => {
+          const currentUser = data.user;
+          console.log(currentUser)
+          // 현재 사용자 정보를 기반으로 UI 업데이트
+          updateUI(currentUser);
+        });
+      }
+
+      // UI 업데이트 함수
+      function updateUI(currentUser) {
+        // 사용자가 로그인한 경우에만 삭제 버튼을 보이게 하거나 숨깁니다.
+        if (currentUser) {
+          $('.delete, #edit').each(function () {
+            const user_id = currentUser; // 현재 사용자의 아이디
+            const post_user_id = $(this).data('user'); // 삭제 버튼에 저장된 게시물 작성자의 아이디
+            console.log(post_user_id)
+            if (user_id == post_user_id) {
+              $(this).show();
+              // 현재 사용자와 게시물 작성자 아이디가 일치하는 경우에만 보이도록 설정
+            } else {
+              $(this).hide(); // 그 외의 경우에는 숨깁니다.
+            }
+          });
+        } else {
+          $('.delete, #edit').hide();
+        }
+      }
+
+      // 페이지 로드 시 현재 사용자 정보 가져오고 UI 업데이트
+      $(document).ready(() => {
+        getCurrentUser();
       });
 
     </script>

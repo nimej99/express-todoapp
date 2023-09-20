@@ -57,7 +57,7 @@
 
       // 클라이언트에서 현재 사용자 정보 가져오기
       function getCurrentUser() {
-        $.get('/getuser', (data) => {
+        $.get('/user', (data) => {
           const currentUser = data.user;
           console.log(currentUser)
           // 현재 사용자 정보를 기반으로 UI 업데이트
