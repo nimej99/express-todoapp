@@ -7,7 +7,7 @@ require('dotenv').config();
 const app = express();
 
 app.listen(process.env.PORT, function () {
-  console.log('litening on 3000')
+  console.log('litening on 8080')
 });
 
 //ejs 라이브러리
