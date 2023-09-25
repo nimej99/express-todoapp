@@ -62,3 +62,6 @@ app.use('/', require('./routes/delete.js'));
 
 //user.js
 app.use('/', require('./routes/user.js'));
+
+//chat.js
+app.use('/', require('./routes/chat.js'));
