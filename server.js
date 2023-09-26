@@ -65,3 +65,6 @@ app.use('/', require('./routes/user.js'));
 
 //chat.js
 app.use('/', require('./routes/chat.js'));
+
+//message.js
+app.use('/', require('./routes/message.js'));

@@ -26,7 +26,7 @@
           </p>
           <button class="delete btn btn-danger" data-id="<%= posts[i]._id %>"
             data-user="<%= posts[i].user %>">삭제</button>
-          <button class="chat btn btn-secondary" data-user="<%= posts[i].user %>">
+          <button class="chat btn btn-secondary" data-user="<%= posts[i].user %>" data-title="<%= posts[i].title %>">
             채팅
           </button>
         </li>
@@ -61,7 +61,8 @@
       //chat btn
       $('.chat').click(function (e) {
         let user = e.target.dataset.user;
-        $.post('/chat', { 피신청인: user })
+        let title = e.target.dataset.title;
+        $.post('/chat', { 피신청인: user, 글제목: title })
           .then(() => {
             console.log('성공');
           })

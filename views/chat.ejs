@@ -20,12 +20,9 @@
         <div class="col-3">
           <ul class="list-group chat-list">
             <% for ( let i=0; i < posts.length; i++ ){ %>
-              <li class="list-group-item" data-id="">
+              <li class="list-group-item" data-id="<%= posts[i]._id %>">
                 <h6>
-                  <%= posts[i].member[0] %>님 채팅방
-                </h6>
-                <h6 class="text-small">
-                  <%= posts[i].member[0] %> 최근대화 넣자
+                  <%= (posts[i].member[0]===user) ? posts[i].member[1] : posts[i].member[0] %>님 채팅방
                 </h6>
               </li>
               <% } %>
@@ -34,14 +31,11 @@
 
         <div class="col-9 p-0">
           <div class="chat-room">
-            <ul class="list-group chat-content">
-              <li><span class="chat-box">채팅방1 내용</span></li>
-              <li><span class="chat-box">채팅방1 내용</span></li>
-              <li><span class="chat-box mine">채팅방1 내용</span></li>
+            <ul class="list-group chat-content" data-user="<%= user %>">
             </ul>
-            <div class="input-group">
+            <div class=" input-group">
               <input class="form-control" id="chat-input">
-              <button class="btn btn-secondary" id="send">전송</button>
+              <button class="btn btn-secondary" id="send" data->전송</button>
             </div>
           </div>
         </div>
@@ -58,55 +52,46 @@
       crossorigin="anonymous"></script>
 
     <script>
-      // 삭제도 /: 파라미터 사용 가능
-      $('.delete').click(function (e) {
-        const postId = e.target.dataset.id;
-        var 지금누른거 = $(this);
-        $.ajax({
-          method: 'DELETE',
-          url: '/delete',
-          data: { _id: postId },
-        }).done((결과) => {
-          지금누른거.parent('li').hide();
-          console.log('성공');
-        }).fail((xhr, textStatus, errorThrown) => {
-          console.log(xhr, textStatus, errorThrown);
-        });
-      });
+      //채팅방 선택
+      let chatroom;
+      let eventSource;
+      $('.list-group-item').click(function () {
+        $(this).parent().children('li').css('background-color', '#fff');
+        $(this).css('background-color', '#eee');
+        chatroom = $(this).attr('data-id');
 
-      // 클라이언트에서 현재 사용자 정보 가져오기
-      function getCurrentUser() {
-        $.get('/user', (data) => {
-          const currentUser = data.user;
-          console.log(currentUser)
-          // 현재 사용자 정보를 기반으로 UI 업데이트
-          updateUI(currentUser);
-        });
-      }
+        // html 비워주기
+        $('.chat-content').html('');
 
-      // UI 업데이트 함수
-      function updateUI(currentUser) {
-        // 사용자가 로그인한 경우에만 삭제 버튼을 보이게 하거나 숨깁니다.
-        if (currentUser) {
-          $('.delete').each(function () {
-            const user_id = currentUser; // 현재 사용자의 아이디
-            const post_user_id = $(this).data('user'); // 삭제 버튼에 저장된 게시물 작성자의 아이디
-            console.log(post_user_id)
-            if (user_id == post_user_id) {
-              $(this).show(); // 현재 사용자와 게시물 작성자 아이디가 일치하는 경우에만 보이도록 설정
-            } else {
-              $(this).hide(); // 그 외의 경우에는 숨깁니다.
-            }
-          });
-        } else {
-          $('.delete').hide();
+        if (eventSource != undefined) {
+          eventSource.close();
         }
-      }
 
-      // 페이지 로드 시 현재 사용자 정보 가져오고 UI 업데이트
-      $(document).ready(() => {
-        getCurrentUser();
+        //실시간 데이터 수신
+        eventSource = new EventSource('/message/' + chatroom);
+        eventSource.addEventListener('chat', function (e) {
+          let writer = $('.chat-content').attr('data-user');
+          let chat = (JSON.parse(e.data));
+          chat.forEach((i) => {
+            $('.chat-content')
+              .append(`<li><span class="chat-box ${i.user == writer ? 'mine' : ''}">` + i.content + '</span></li>');
+            console.log('마인' + writer + '글쓴이' + i.user);
+          });
+        });
       });
+      //채팅 전송
+      $('#send').click(function () {
+        let cont = $('#chat-input').val();
+        let chat = {
+          post: chatroom,
+          content: cont,
+        }
+        $.post('/message', chat).then(() => {
+          console.log('전송성공');
+        })
+        $('#chat-input').val('');
+      });
+
     </script>
 </body>
 
