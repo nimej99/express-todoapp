@@ -6,7 +6,13 @@ require('dotenv').config();
 
 const app = express();
 
-app.listen(process.env.PORT, function () {
+//socket.io
+const http = require('http').createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(http);
+app.set('io', io);
+
+http.listen(process.env.PORT, function () {
   console.log('litening on 8080')
 });
 
@@ -68,3 +74,6 @@ app.use('/', require('./routes/chat.js'));
 
 //message.js
 app.use('/', require('./routes/message.js'));
+
+//socket.js
+app.use('/', require('./routes/socket.js')(io));
