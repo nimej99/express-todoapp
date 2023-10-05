@@ -36,9 +36,23 @@ function socket(io) {
         console.log('유저접속됨');
         // console.log(socket);
 
+        socket.on('join', function (data) {
+          console.log(data);
+          socket.join('채팅방1'); //채팅방 만들고 입장
+        });
+
+        socket.on('room1-send', function (data) {
+          console.log(data);
+          io.to('채팅방1').emit('broadcast', data);
+        });
+
         socket.on('user-send', function (data) {
           console.log(data);
-        })
+          io.emit('broadcast', data); //모든유저에게 보내줌
+
+          // io.to(socket.id).emit('broadcast', data) 서버-유저 1명간 단독소통
+        });
+
       });
 
       응답.render('../views/socket.ejs');
@@ -53,7 +67,7 @@ function socket(io) {
     }
   });
 
-  return router
+  return router;
 }
 
 

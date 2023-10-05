@@ -18,12 +18,29 @@
 
     <h4 class="ml-2 my-3"><strong>채팅방</strong></h4>
     <div class="container p-4 detail">
-
-      <button id="send">서버에 메세지 보내기</button>
+      <div id="content"></div>
+      <input type="text" id="text">
+      <button id="send">서버에 메세지 보내기(단체)</button>
+      <button id="join">채팅방1 입장</button>
+      <input type="text" id="room1-text">
+      <button id="join-send">채팅방1 메세지보내기</button>
       <script>
         var socket = io();
+
+        $('#join').click(function () {
+          socket.emit('join', '채팅방입장');
+        });
+
+        $('#join-send').click(function () {
+          socket.emit('room1-send', $('#room1-text').val());
+        });
+
         $('#send').click(function () {
-          socket.emit('user-send', '안녕하쇼')
+          socket.emit('user-send', $('#text').val());
+        });
+
+        socket.on('broadcast', function (data) {
+          $('#content').append('<div>' + data + '</div>');
         });
       </script>
 
